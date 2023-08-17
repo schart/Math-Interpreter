@@ -11,7 +11,7 @@ import (
 
 /* Types start */
 // _replace shortcut of strings.ReplaceAll
-var _replace func(s string, old string, new string) string = strings.ReplaceAll
+var _replace func(s, old, new string) string = strings.ReplaceAll
 
 // For keep Lexer informations
 type TokenType int
@@ -226,7 +226,7 @@ func minLength(text string) error {
 	return nil
 }
 
-func checkOP(sChar byte, eChar byte) error {
+func checkOP(sChar, eChar byte) error {
 	if (sChar == '*' || sChar == '+' || sChar == '-' || sChar == '/') ||
 		(eChar == '*' || eChar == '+' || eChar == '-' || eChar == '/') {
 
