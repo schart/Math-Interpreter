@@ -1,6 +1,7 @@
 # Math-Interpreter
 
 This is a interpreter of math expressions.
+![Alt text](photos/image.png)
 
 Hello, I can say this: "This is my first and successful project in Programming language theory".
 I made an interpreter to interpret math expressions and share it with you.
