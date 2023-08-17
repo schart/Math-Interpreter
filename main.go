@@ -6,12 +6,11 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 )
 
 /* Types start */
 // _replace shortcut of strings.ReplaceAll
-var _replace func(s, old, new string) string = strings.ReplaceAll
+// var _replace func(s, old, new string) string = strings.ReplaceAll
 
 // For keep Lexer informations
 type TokenType int
@@ -68,6 +67,21 @@ func isDigit(ch byte) bool {
 // Check token is operator of math?
 func isOperator(ch byte) bool {
 	return '*' == ch || '+' == ch || '-' == ch || '/' == ch
+}
+
+// Delete all space in text
+func _replace(text string) string {
+	var newText string
+
+	for i := 0; i < len(text); i++ {
+		char := string(text[i])
+
+		if char != " " {
+			newText += char
+		}
+	}
+	return newText
+
 }
 
 // Take other char if exists
@@ -252,7 +266,7 @@ func main() {
 			break
 		}
 
-		text := strings.ReplaceAll(input, " ", "")
+		text := _replace(input)
 
 		if err := minLength(text); err != nil {
 			fmt.Println(err)
