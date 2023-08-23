@@ -126,13 +126,24 @@ func (l *Lexer) lexer() Token {
 			return Token{Type: TokenInteger, Value: num}
 		}
 
+		if currentChar == '-' {
+			// Handle consecutive minus signs
+			minusCount := 0
+			for l.pos < len(l.text) && l.text[l.pos] == '-' {
+				minusCount++
+				l.pos++
+			}
+			if minusCount%2 == 0 {
+				return Token{Type: TokenPlus, Value: "+"}
+			} else {
+				return Token{Type: TokenMinus, Value: "-"}
+			}
+		}
+
 		switch currentChar {
 		case '+':
 			l.advanceChar()
 			return Token{Type: TokenPlus, Value: "+"}
-		case '-':
-			l.advanceChar()
-			return Token{Type: TokenMinus, Value: "-"}
 		case '*':
 			l.advanceChar()
 			return Token{Type: TokenMultiply, Value: "*"}
@@ -203,7 +214,6 @@ func (p *Parser) parseExpression() int {
 			result /= p.parseFactor()
 		}
 	}
-
 	// Return result of process '*' and '/'
 	return result
 }
@@ -213,7 +223,6 @@ func (p *Parser) parseTerm() int {
 	// Only does work for '+' and '-'
 	for p.currentToken.Type == TokenPlus || p.currentToken.Type == TokenMinus {
 		token := p.currentToken
-
 		if token.Type == TokenPlus {
 			// we wait expected the data
 			p.eat(TokenPlus)
@@ -284,3 +293,6 @@ func main() {
 		fmt.Printf("%d\n", result)
 	}
 }
+
+
+
