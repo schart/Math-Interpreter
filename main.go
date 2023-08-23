@@ -240,10 +240,8 @@ func minLength(text string) error {
 	return nil
 }
 
-func checkOP(sChar, eChar byte) error {
-	if (sChar == '*' || sChar == '+' || sChar == '-' || sChar == '/') ||
-		(eChar == '*' || eChar == '+' || eChar == '-' || eChar == '/') {
-
+func checkOP(eChar byte) error {
+	if (eChar == '*' || eChar == '+' || eChar == '-' || eChar == '/') {
 		return errors.New("Token can not be operator, at last and start of input")
 	}
 	return nil
@@ -273,8 +271,8 @@ func main() {
 			return
 		}
 
-		startCh, lastCh := text[0], text[len(text)-1]
-		if err := checkOP(startCh, lastCh); err != nil {
+		lastCh := text[len(text)-1]
+		if err := checkOP(lastCh); err != nil {
 			fmt.Println(err)
 			return
 		}
