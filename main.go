@@ -2,15 +2,12 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"strconv"
 )
 
 /* Types start */
-// _replace shortcut of strings.ReplaceAll
-// var _replace func(s, old, new string) string = strings.ReplaceAll
 
 // For keep Lexer informations
 type TokenType int
@@ -33,6 +30,10 @@ type Parser struct {
 	lexer        *Lexer
 	currentToken Token
 }
+
+// Counter of parents
+var lpn int
+var rpn int
 
 // If we add a token here and do not use it, the loop will not stop
 const (
@@ -126,13 +127,24 @@ func (l *Lexer) lexer() Token {
 			return Token{Type: TokenInteger, Value: num}
 		}
 
+		if currentChar == '-' {
+			// Handle consecutive minus signs
+			minusCount := 0
+			for l.pos < len(l.text) && l.text[l.pos] == '-' {
+				minusCount++
+				l.pos++
+			}
+			if minusCount%2 == 0 {
+				return Token{Type: TokenPlus, Value: "+"}
+			} else {
+				return Token{Type: TokenMinus, Value: "-"}
+			}
+		}
+
 		switch currentChar {
 		case '+':
 			l.advanceChar()
 			return Token{Type: TokenPlus, Value: "+"}
-		case '-':
-			l.advanceChar()
-			return Token{Type: TokenMinus, Value: "-"}
 		case '*':
 			l.advanceChar()
 			return Token{Type: TokenMultiply, Value: "*"}
@@ -180,14 +192,63 @@ func (p *Parser) eat(tokenType TokenType) {
 
 func (p *Parser) parseFactor() int {
 	token := p.currentToken
-	p.eat(TokenInteger)
 
-	number, _ := strconv.Atoi(token.Value)
-	return number
+	if token.Type == TokenInteger {
+		p.eat(TokenInteger)
+		number, _ := strconv.Atoi(token.Value)
+
+		return number
+
+	} else if token.Type == TokenLParen {
+		p.eat(TokenLParen)
+		result := p.parseTerm()
+		p.eat(TokenRParen)
+
+		return result
+
+	} else {
+		panic(fmt.Sprintf("Unexpected token: %v", token))
+	}
+}
+
+func (p *Parser) countParents() {
+	text := p.lexer.text
+
+	for i := 0; i < len(text); i++ {
+		char := text[i]
+		if char == '(' {
+			lpn++
+		} else if char == ')' {
+			rpn++
+		}
+	}
+
+}
+
+func (p *Parser) parseParent() int {
+	var result int
+
+	if p.currentToken.Type == TokenLParen {
+		p.eat(TokenLParen) // Eat the opener parenthesis
+
+		result = p.parseTerm() // Process the content of parentheses
+
+		if p.currentToken.Type == TokenRParen {
+			p.eat(TokenRParen) // Eat the closing parenthesis
+		}
+	} else {
+		result = p.parseFactor()
+	}
+
+	if lpn != rpn || lpn < rpn || rpn > lpn {
+		panic("Parenthesis error")
+	}
+
+	return result
 }
 
 func (p *Parser) parseExpression() int {
-	result := p.parseFactor()
+	result := p.parseParent()
 
 	// Only does work for '*' and '/'
 	for p.currentToken.Type == TokenMultiply || p.currentToken.Type == TokenDivide {
@@ -195,21 +256,29 @@ func (p *Parser) parseExpression() int {
 
 		if token.Type == TokenMultiply {
 			// we wait expected the data
+
 			p.eat(TokenMultiply)
-			result *= p.parseFactor()
+			result *= p.parseParent()
+
 		} else if token.Type == TokenDivide {
 			// we wait expected the data
 			p.eat(TokenDivide)
-			result /= p.parseFactor()
+			num := p.parseParent()
+
+			if num != 0 {
+				result /= num
+			} else {
+				panic("Invalid operation: division by zero")
+			}
 		}
 	}
 
-	// Return result of process '*' and '/'
 	return result
 }
 
 func (p *Parser) parseTerm() int {
 	result := p.parseExpression()
+
 	// Only does work for '+' and '-'
 	for p.currentToken.Type == TokenPlus || p.currentToken.Type == TokenMinus {
 		token := p.currentToken
@@ -218,10 +287,12 @@ func (p *Parser) parseTerm() int {
 			// we wait expected the data
 			p.eat(TokenPlus)
 			result += p.parseExpression()
+
 		} else if token.Type == TokenMinus {
 			// we wait expected the data
 			p.eat(TokenMinus)
 			result -= p.parseExpression()
+
 		}
 	}
 
@@ -235,16 +306,15 @@ func (p *Parser) parseTerm() int {
 
 func minLength(text string) error {
 	if len(text) < 2 {
-		return errors.New("You must start with three length text like: 2 + 2")
+		panic("You must start with three length text like: 2 + 2")
 	}
 	return nil
 }
 
-func checkOP(sChar, eChar byte) error {
-	if (sChar == '*' || sChar == '+' || sChar == '-' || sChar == '/') ||
-		(eChar == '*' || eChar == '+' || eChar == '-' || eChar == '/') {
-
-		return errors.New("Token can not be operator, at last and start of input")
+// Check operator
+func checkOP(eChar byte) error {
+	if eChar == '*' || eChar == '+' || eChar == '-' || eChar == '/' {
+		panic("Token can not be operator, at last and start of input")
 	}
 	return nil
 }
@@ -253,6 +323,7 @@ func checkOP(sChar, eChar byte) error {
 
 func main() {
 	var input string
+
 	for input != "exit" {
 		fmt.Println("Enter 'exit' for leave the terminal of interpreter:")
 		fmt.Print("> ")
@@ -269,20 +340,20 @@ func main() {
 		text := _replace(input)
 
 		if err := minLength(text); err != nil {
-			fmt.Println(err)
-			return
+			panic(err)
 		}
 
-		startCh, lastCh := text[0], text[len(text)-1]
-		if err := checkOP(startCh, lastCh); err != nil {
-			fmt.Println(err)
-			return
+		lastCh := text[len(text)-1]
+		if err := checkOP(lastCh); err != nil {
+			panic(err)
 		}
 
 		lexer := NewLexer(text)
 		parser := NewParser(lexer)
+		parser.countParents()
+
 		result := parser.parseTerm()
 
-		fmt.Printf("%d\n", result)
+		fmt.Printf("Output: %d\n", result)
 	}
 }
