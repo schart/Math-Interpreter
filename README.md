@@ -24,6 +24,9 @@ Thanks to method, we know our way.
 **(Parser) Method of parseFactor**:
 Convert potential tokens to integer from string text and thanks to which we can parse they.
 
+**(Parser) Method of parseParent**:
+With this function, we process our brackets with the most important priority, starting from the innermost brackets based on the processing priority.
+
 **(Parser) Method of parseExpression**:
 We processing multiply and divide in here.
 When we processing these, we offer integer from parseFactor.
