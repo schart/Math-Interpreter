@@ -30,8 +30,8 @@ With this function, we process our brackets with the most important priority, st
 **(Parser) Method of parseExpression**:
 We processing multiply and divide in here.
 When we processing these, we offer integer from parseFactor.
-We take first integer with result variable like: (2) * 2, and
-We check if token multiply or divide: 2 (*) 2 if like that, remember we assign result first integer, opposed potential. Multiply op: (2) \* 2, now we assign to variable of result last integer result by multiplying result.
+We take first integer with result variable like: (2) * 2, 
+And we check if token multiply or divide: 2 (*) 2 if like that, remember we assign result first integer, opposed potential. Multiply op: (2) \* 2, now we assign to variable of result last integer result by multiplying result.
 
 **(Parser) parseTerm method**:
 The logic of the function is the same as parseExpression.

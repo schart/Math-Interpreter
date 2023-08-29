@@ -241,7 +241,7 @@ func (p *Parser) parseParent() int {
 	}
 
 	if lpn != rpn || lpn < rpn || rpn > lpn {
-		panic("Parenthesis error")
+		panic("Parenthesis error!")
 	}
 
 	return result
